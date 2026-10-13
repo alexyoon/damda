@@ -530,8 +530,19 @@ document.getElementById('quoteForm').addEventListener('submit',e=>{
 });
 </script>
 <script type="module">
-const SELECTOR='#top .hero-media img',MAX_DEG=18,DEPTH=0.22,ZOOM=1.18;
+const SELECTOR='#top .hero-media img',MAX_DEG=24,DEPTH=0.32,ZOOM=1.22;
 const img=document.querySelector(SELECTOR);
+/* 즉시 움직임: AI 3D가 준비되기 전까지 사진 자체를 마우스·기울기에 따라 입체적으로 움직임 */
+let fbOn=true;const fbT={x:0,y:0},fbC={x:0,y:0};let fbIdle=true;
+if(img){img.style.transformOrigin='50% 50%';img.style.willChange='transform';
+const hm=img.parentElement;hm.style.perspective='1200px';
+window.addEventListener('pointermove',e=>{const r=hm.getBoundingClientRect();fbT.x=((e.clientX-r.left)/r.width-0.5)*2;fbT.y=((e.clientY-r.top)/r.height-0.5)*2;fbIdle=false;});
+document.addEventListener('pointerleave',()=>(fbIdle=true));
+(function fb(t){if(!fbOn){img.style.transform='';return;}
+if(fbIdle){fbT.x=Math.sin(t/2200)*0.7;fbT.y=Math.cos(t/3100)*0.35;}
+fbC.x+=(fbT.x-fbC.x)*0.06;fbC.y+=(fbT.y-fbC.y)*0.06;
+img.style.transform=`scale(1.14) translate(${-fbC.x*2.2}%,${-fbC.y*1.6}%) rotateY(${fbC.x*4}deg) rotateX(${-fbC.y*3}deg)`;
+requestAnimationFrame(fb);})(0);}
 if(img)init().catch(e=>console.warn('[hero3d] 3D 변환 실패, 원본 사진 유지:',e));
 async function init(){
 if(!img.complete)await img.decode();
@@ -580,7 +591,7 @@ const ax=cur.x*maxRad,ay=-cur.y*maxRad;
 camera.position.set(Math.sin(ax)*dist,Math.sin(ay)*dist,Math.cos(ax)*Math.cos(ay)*dist);
 camera.lookAt(0,0,0);renderer.render(scene,camera);});
 requestAnimationFrame(()=>{cv.style.opacity='1';});
-setTimeout(()=>{img.style.visibility='hidden';},850);}
+setTimeout(()=>{img.style.visibility='hidden';fbOn=false;},850);}
 </script>
 </body>
 </html>
